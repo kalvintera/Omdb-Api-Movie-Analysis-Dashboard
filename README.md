@@ -1,10 +1,28 @@
 <h1>OMDB Movie Analysis Dashboard</h1>
 
+<h2> Über dieses Projekt </h2>
+Dieses Dashboard wurde als Lehrmittel für diejenigen entwickelt, die bereits über solide Grundkenntnisse in Python verfügen und daran interessiert sind, Streamlit, eine leistungsstarke und flexible Bibliothek für die Erstellung interaktiver und datengetriebener Webanwendungen, zu lernen und zu erforschen.
+
+Das OMDB Movie Analysis Dashboard bietet eine praktische und interessante Möglichkeit, die vielfältigen Möglichkeiten von Streamlit zu entdecken. Von der Datenverarbeitung und Visualisierung bis hin zur Integration von externen APIs und dem Umgang mit Benutzereingaben deckt dieses Projekt eine breite Palette von Funktionen ab, die in modernen Webanwendungen üblich sind.
+
+Die Struktur des Dashboards und der zugrunde liegende Code sind so konzipiert, dass sie sowohl für diejenigen nützlich sind, die gerade erst mit Streamlit beginnen, als auch für erfahrene Entwickler, die tiefer in fortgeschrittenere Themen eintauchen möchten. Durch dieses Projekt erhalten Sie nicht nur Einblicke in die Anwendungsentwicklung mit Streamlit, sondern verbessern auch Ihre Fähigkeiten in Python und Datenanalyse.
+
+**Was Sie lernen können**
+
+- **Grundlagen von Streamlit:** Erfahren Sie, wie Sie mit Streamlit eine einfache Webanwendung erstellen, von der Einrichtung bis zur Bereitstellung.
+- **Benutzerinteraktion:** Implementieren Sie Formen der Benutzerinteraktion, wie Texteingaben, Buttons und Datei-Uploads.
+- **Datenverarbeitung:** Verarbeiten und analysieren Sie Daten aus unterschiedlichen Quellen und in verschiedenen Formaten.
+- **Datenvisualisierung:** Erstellen Sie interaktive Grafiken und Karten, um Daten auf ansprechende und informative Weise darzustellen.
+- **Externe APIs integrieren:** Lernen Sie, wie Sie externe APIs wie OMDB nutzen können, um dynamische Daten in Ihre Anwendung einzubinden.
+- **Performance-Optimierung:** Verstehen Sie, wie Caching und effiziente Datenverarbeitung die Performance Ihrer Streamlit-Anwendung verbessern können.
+- **Fehlerbehandlung und Debugging:** Verbessern Sie die Stabilität Ihrer Anwendung durch angemessene Fehlerbehandlung und Debugging-Techniken.
 
 <h2>Überblick</h2>
 Diese Streamlit-App bietet eine interaktive Plattform zur Analyse von Filmdaten. Sie ermöglicht es Benutzern, Filmdaten basierend auf Titeln oder einer hochgeladenen Liste zu analysieren und bietet umfassende Einblicke in verschiedene Aspekte der Filme.
 
+
 **Overview.py**
+
 ![img.png](static/img/overview_1.png)
 
 ![img_1.png](static/img/overview_2.png)
@@ -28,10 +46,9 @@ Die App verwendet die OMDB API, um Daten zu einzelnen Filmen oder einer Liste vo
 
 Visualisierung von Filmgenres, IMDb-Bewertungen, Box-Office-Einnahmen und mehr durch verschiedene Grafiktypen wie Balkendiagramme und Karten.
 
-**Word Cloud Analyse:**
+- **Word Cloud Analyse:** Visualisierung von Filmplots durch Wortwolken, um häufige Themen und Schlüsselwörter zu identifizieren.
 
-Visualisierung von Filmplots durch Wortwolken, um häufige Themen und Schlüsselwörter zu identifizieren.
-Geo-Informationen: Anzeige der Herkunftsländer der Filme auf einer interaktiven Karte.
+- **Geo-Informationen:** Anzeige der Herkunftsländer der Filme auf einer interaktiven Karte.
 
 **Struktur der App**
 <ul>
@@ -67,6 +84,7 @@ Bsp:
 API_KEY=XXXX
 
 **Datenquellen**
+
 Die App verwendet IMDb-Daten, die in CSV-Dateien im input-Ordner enthalten sind. Beispielhafte Datenzeilen:
 
 
