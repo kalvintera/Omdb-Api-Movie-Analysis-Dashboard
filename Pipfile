@@ -1,0 +1,27 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+streamlit = "*"
+pandas = "*"
+matplotlib = "*"
+requests = "*"
+python-dotenv = "*"
+seaborn = "*"
+plotly = "*"
+jupyter = "*"
+wordcloud = "*"
+statsmodels = "*"
+geopy = "*"
+folium = "*"
+streamlit-folium = "*"
+black = "*"
+extra-streamlit-components = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
+python_full_version = "3.11.3"
