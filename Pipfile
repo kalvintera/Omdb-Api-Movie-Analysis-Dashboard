@@ -17,10 +17,10 @@ statsmodels = "*"
 geopy = "*"
 folium = "*"
 streamlit-folium = "*"
-black = "*"
 extra-streamlit-components = "*"
 
 [dev-packages]
+black = "*"
 
 [requires]
 python_version = "3.11"

@@ -5,24 +5,37 @@ from typing import List
 import plotly.express as px
 import plotly.graph_objects as go
 from process.processor import DataProcessor
+from api.omdb import OmdbApiHandler
+
 
 processor = DataProcessor([])
 
 
+# Da die Ausführung dieser Funktion lange dauert, wird
+# caching mit @st.cache_data verwendet, damit Länder nicht mehrfach verarbeitet werden
 @st.cache_data
-def get_country_coordinates(country):
+def get_country_coordinates(country: str):
+    """Wrapper Funktion um get_coordinates mit caching"""
     return processor.get_coordinates(country)
 
 
-def create_geo_map_data(country_list):
+def create_geo_map_data(country_list: List[str]) -> pd.DataFrame:
+    """
+    Erstellt aus einer Liste an Ländern ein DataFrame mit den Ländern und zugehörigen
+    Lat und Lon Werten
+    :param country_list: List an Länder-Codes
+    :return: DataFrame
+    """
     result_list = []
     for country in country_list:
         lat, lon = get_country_coordinates(country)
         if lat is not None and lon is not None:
             result_list.append({"country": country, "latitude": lat, "longitude": lon})
+
     return pd.DataFrame(result_list)
 
-def update_movie_data(movie_titles_input, uploaded_file) -> List:
+
+def update_movie_data(movie_titles_input: str, uploaded_file) -> List:
     """
     Aktualisiert die Filmdaten basierend auf dem eingegebenen Titel oder der hochgeladenen Datei.
 
@@ -33,21 +46,23 @@ def update_movie_data(movie_titles_input, uploaded_file) -> List:
     movie_list = []
 
     if uploaded_file:
-
-        # Datei lesen basierend auf dem Dateityp
+        # Datei basierend auf dem Dateityp lesen
         if uploaded_file.name.endswith(".csv"):
             movie_df = pd.read_csv(uploaded_file)
+
         elif uploaded_file.name.endswith(".xlsx"):
             movie_df = pd.read_excel(uploaded_file)
-        else:
-            movie_df = (
-                pd.DataFrame()
-            )  # Erstellt ein leeres DataFrame, falls die Datei kein bekanntes Format hat
 
-        # Überprüfen, ob der DataFrame leer ist und ob er eine "title" Spalte enthält
+        else:
+            # Erstellt ein leeres DataFrame, falls die Datei kein bekanntes Format hat
+            movie_df = pd.DataFrame()
+
+        # Wenn das DataFrame nicht leer ist und es eine "title" Spalte enthält
+        # wird es weiter verwendet
         if not movie_df.empty and "Title" in movie_df.columns:
             movie_list = movie_df["Title"].tolist()
 
+    # Wenn kein File hochgeladen wurde und stattdessen ein Filmtitel eingegeben wurde
     if not movie_list and movie_titles_input:
         # Verarbeite die eingegebenen Filmtitel
         movie_list = [title.strip() for title in movie_titles_input.split(",") if title]
@@ -55,7 +70,7 @@ def update_movie_data(movie_titles_input, uploaded_file) -> List:
     return movie_list
 
 
-def initial_setup(movie_titles, api, movie_file_upload):
+def initial_setup(movie_titles: str, api: OmdbApiHandler, movie_file_upload) -> None:
     """
     Initialisiert die Datenverarbeitung für die Streamlit-App.
 
@@ -63,45 +78,51 @@ def initial_setup(movie_titles, api, movie_file_upload):
     :param api: Instanz der OmdbApiHandler-Klasse.
     :param movie_file_upload: Hochgeladene Datei mit Filmtiteln.
     """
-
-    if movie_titles != "Geben Sie die Filmtitel ein, getrennt durch Kommas" or movie_file_upload is not None:
+    if (
+        movie_titles != "Geben Sie die Filmtitel ein, getrennt durch Kommas"
+        or movie_file_upload is not None
+    ):
         movie_list = update_movie_data(
             movie_titles_input=movie_titles, uploaded_file=movie_file_upload
         )
+
         if len(movie_list) > 15:
             movie_list = movie_list[0:40]
 
+        print(movie_list)
         if movie_list and movie_list[0] != "":
-
+            print("get_movie_info_from_list")
             movie_data_raw = api.get_movie_info_from_list(movie_title_list=movie_list)
+            print(movie_data_raw)
 
             if movie_data_raw:
                 st.session_state.movie_data_raw_df = pd.DataFrame(movie_data_raw)
-                print(f"st.session_state.movie_data_raw_df {st.session_state.movie_data_raw_df}")
+                print(
+                    f"st.session_state.movie_data_raw_df {st.session_state.movie_data_raw_df}"
+                )
                 st.session_state.input_movie_titles = movie_list
             else:
-                st.markdown('<p class="font">Movie not fount!</p>', unsafe_allow_html=True)
+                st.markdown(
+                    '<p class="font">Movie not found!</p>', unsafe_allow_html=True
+                )
+
         else:
             st.session_state.movie_data_raw_df = pd.DataFrame()
             st.session_state.input_movie_titles = ""
             st.markdown(
                 '<p class="font">Your movie list is empty</p>', unsafe_allow_html=True
             )
+
     else:
-        st.markdown(
-            '<p class="font">User input is missing</p>', unsafe_allow_html=True
-        )
+        st.markdown('<p class="font">User input is missing</p>', unsafe_allow_html=True)
 
 
-def create_overview_graphs():
+def create_overview_graphs() -> None:
     """
-    Erstellt die Übersichtsgrafiken für den Overview-Tab.
-
-    :param tab1: Tab-Objekt für die Übersichtsansicht.
+    Erstellt die Übersichtsgrafiken im Overview-Tab.
     """
 
     if not st.session_state.movie_data_raw_df.empty:
-
         st.session_state["active_tab"] = "Overview"
 
         st.subheader("Data Overview")
@@ -111,8 +132,10 @@ def create_overview_graphs():
             df=st.session_state.movie_data_raw_df,
             column_name_list=["Genre", "Country", "Actors", "Country"],
         )
+
         # Geschützte Spalten:
         protected_columns = ["Poster", "Title", "Genre", "imdbRating", "BoxOffice"]
+
         # Df Filter-Elemente:
         filter_col1, filter_col2 = st.columns([1, 1])
         selected_columns = filter_col1.multiselect(
@@ -123,16 +146,18 @@ def create_overview_graphs():
                 if column not in protected_columns
             ],
         )
+
         text_search = filter_col2.text_input(
             "Suchen Sie Videos nach Titel, Genre oder Schauspieler", value=""
         )
+
         movie_data_raw_df = st.session_state.movie_data_raw_df.copy()
+
         if selected_columns:
-            movie_data_raw_df = movie_data_raw_df[
-                protected_columns + selected_columns
-            ]
+            movie_data_raw_df = movie_data_raw_df[protected_columns + selected_columns]
         else:
             movie_data_raw_df = st.session_state.movie_data_raw_df
+
         if text_search:
             title_search = st.session_state.movie_data_raw_df.Title.str.contains(
                 text_search, case=False
@@ -148,9 +173,7 @@ def create_overview_graphs():
             movie_data_raw_df_filtered = st.session_state.movie_data_raw_df[
                 title_search | genre_search | actor_search
             ]
-            movie_data_raw_df = movie_data_raw_df_filtered[
-                movie_data_raw_df.columns
-            ]
+            movie_data_raw_df = movie_data_raw_df_filtered[movie_data_raw_df.columns]
 
         st.data_editor(
             movie_data_raw_df,
@@ -164,6 +187,7 @@ def create_overview_graphs():
             },
             hide_index=True,
         )
+
         st.subheader("Genre Analyse")
         graph_column_1, graph_column_2 = st.columns(2)
         graph_column_3, graph_column_4 = st.columns(2)
@@ -181,7 +205,8 @@ def create_overview_graphs():
                 orientation="h",
                 title="Anzahl der Genres",
             )
-            # Aktualisiere die x - Achse, um nur ganze Zahlen als Ticks anzuzeigen
+
+            # Aktualisierung der x-Achse, um nur ganze Zahlen als Ticks anzuzeigen
             fig.update_layout(
                 height=600,
                 xaxis=dict(
@@ -196,6 +221,7 @@ def create_overview_graphs():
                     tickfont=dict(size=12),  # Schriftgröße der Tick-Labels anpassen
                 ),
             )
+
             fig.update_traces(marker_color="purple", opacity=0.6)
             st.plotly_chart(fig, use_container_width=True)
 
@@ -203,14 +229,16 @@ def create_overview_graphs():
             genre_exploded["imdbRating"] = pd.to_numeric(
                 genre_exploded["imdbRating"], errors="coerce"
             )
+
             # Zeilen mit NaN-Werten in der 'imdbRating' Spalte werden entfernt
             genre_exploded = genre_exploded.dropna(subset=["imdbRating"])
+
             genre_ratings = (
                 genre_exploded.groupby("Genre")["imdbRating"].median().reset_index()
             )
-            genre_ratings = genre_ratings.sort_values(
-                by="imdbRating", ascending=False
-            )
+
+            genre_ratings = genre_ratings.sort_values(by="imdbRating", ascending=False)
+
             fig = px.bar(
                 genre_ratings,
                 x="imdbRating",
@@ -218,6 +246,7 @@ def create_overview_graphs():
                 orientation="h",
                 title="Median IMDb-Bewertung pro Genre",
             )
+
             fig.update_layout(height=600)
             fig.update_traces(marker_color="navy", opacity=0.9)
             graph_column_2.plotly_chart(fig, use_container_width=True)
@@ -253,15 +282,14 @@ def create_overview_graphs():
 
             # ----------  COUNTRIES MAP --------------
 
-
             # a dedicated single loader
             with graph_column_4:
-                with st.spinner('Wait for it...'):
+                with st.spinner("Bitte warten ..."):
                     countries = st.session_state.movie_data_raw_df["Country"].apply(
                         lambda x: x.split(",") if isinstance(x, str) else x
                     )
-                    processed_countries = set(
-                        country.strip() for country in set(countries.explode())
+                    processed_countries = list(
+                        set(country.strip() for country in set(countries.explode()))
                     )
 
                     geo_map_df = create_geo_map_data(country_list=processed_countries)
@@ -271,7 +299,6 @@ def create_overview_graphs():
                         geo_map_df,
                         lat="latitude",
                         lon="longitude",
-
                         hover_data={"latitude": False, "longitude": False},
                         zoom=2,
                         height=800,
@@ -291,7 +318,10 @@ def create_overview_graphs():
 
                     fig.update_layout(mapbox_style="open-street-map")
                     fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-                    st.markdown('<br>', unsafe_allow_html=True)
-                    st.markdown('<strong>Länderverteilung der Filme</strong>', unsafe_allow_html=True)
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.markdown(
+                        "<strong>Länderverteilung der Filme</strong>",
+                        unsafe_allow_html=True,
+                    )
 
                     st.plotly_chart(fig, use_container_width=True)

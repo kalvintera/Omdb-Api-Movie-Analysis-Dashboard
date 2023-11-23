@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from wordcloud import WordCloud, STOPWORDS
 
 
-def _create_cloud(text, max_word) -> None:
+def _create_cloud(text: str, max_word: int) -> None:
     """
     Erstellt eine Wortwolke aus gegebenem Text.
 
@@ -12,6 +12,8 @@ def _create_cloud(text, max_word) -> None:
     :return: None
     """
     stopwords = set(STOPWORDS)
+
+    # Ergänzen von eigenen STOPWORDS
     stopwords.update(
         {
             "us",
@@ -50,6 +52,7 @@ def _create_cloud(text, max_word) -> None:
 
     # word cloud erstellen
     w_cloud.generate(text)
+
     # show the figure
     plt.figure(figsize=(100, 100))
 
@@ -63,14 +66,13 @@ def create_details() -> None:
     """
     Erstellt den Detail-Tab für die Streamlit-App.
 
-    :param tab2: Tab-Objekt für die Detailansicht.
     :return: None
     """
     st.session_state["active_tab"] = "Detail"
 
     if not st.session_state.movie_data_raw_df.empty:
-        print(f'st.session_state[active_tab] {st.session_state["active_tab"]}')
         details_col1, details_col2 = st.columns(2)
+
         with details_col1:
             selected_title = st.selectbox(
                 "Wählen Sie einen Film aus, um Details zu sehen:",
@@ -80,6 +82,7 @@ def create_details() -> None:
             movie_details = st.session_state.movie_data_raw_df[
                 st.session_state.movie_data_raw_df["Title"] == selected_title
             ].iloc[0]
+
             st.image(movie_details["Poster"])
             st.subheader(movie_details["Title"])
             st.write(f"**Year:** {movie_details['Year']}")

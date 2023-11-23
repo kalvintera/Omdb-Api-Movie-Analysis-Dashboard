@@ -3,7 +3,7 @@ import extra_streamlit_components as stx
 import pandas as pd
 from config import Config
 from design.styler import DesignHandler
-from api.extract_data import OmdbApiHandler
+from api.omdb import OmdbApiHandler
 from tabs.overview import initial_setup, create_overview_graphs
 from tabs.details import create_details
 
@@ -16,8 +16,9 @@ designer = DesignHandler()
 st.set_page_config(
     page_title="Film Analyse Dashboard", page_icon=":clapper:", layout="wide"
 )
-designer.add_custom_css()
 
+# Hinzufügen der eigenen CSS-Regeln
+designer.add_custom_css()
 
 # Initialisierung von Session State Variablen
 if "movie_data_raw_df" not in st.session_state:
@@ -32,8 +33,7 @@ with banner_container:
     col_banner1.image(designer.logo, width=100, clamp=True, caption=None)
     col_banner2.title("Film Analyse Dashboard")
 
-# --- SIDEBAR ----
-
+# Sidebar
 movie_titles = st.sidebar.text_area(
     "Filme eingeben", "Geben Sie die Filmtitel ein, getrennt durch Kommas"
 )
@@ -42,30 +42,36 @@ movie_file_upload = st.sidebar.file_uploader("Laden Sie eine IMDB Liste hoch")
 
 start_analysis = st.sidebar.button("Analyse Starten")
 
-chosen_id = stx.tab_bar(data=[
-    stx.TabBarItemData(id=1, title="Overview", description=""),
-    stx.TabBarItemData(id=2, title="Detail", description="")
-], default=1)
+# Navigation
+chosen_id = stx.tab_bar(
+    data=[
+        stx.TabBarItemData(id=1, title="Overview", description=""),
+        stx.TabBarItemData(id=2, title="Detail", description=""),
+    ],
+    default=1,
+)
 
 print(f"chosen_id : {chosen_id}")
-# Überprüfen Sie, welcher Tab aktiv ist und rufen Sie die entsprechende Funktion auf
 
+# Überprüfen Sie, welcher Tab aktiv ist und rufen Sie die entsprechende Funktion auf
 
 # Wenn der 'Analyse Starten'-Button gedrückt wird
 if start_analysis:
     if not st.session_state["movie_data_raw_df"].empty:
         st.session_state["movie_data_raw_df"] = pd.DataFrame()
-        with st.spinner('Data loading...'):
+
+        with st.spinner("Data loading..."):
             initial_setup(movie_titles, api, movie_file_upload)
+
     else:
-
-        with st.spinner('Data loading...'):
+        with st.spinner("Data loading..."):
             initial_setup(movie_titles, api, movie_file_upload)
 
+# Wenn der Tab "Overview" gedrückt wurde
 if chosen_id == str(1):
-
     if not st.session_state["movie_data_raw_df"].empty:
         create_overview_graphs()
-else:
 
+# Wenn der Tab "Detail" gedrückt wurde
+else:
     create_details()

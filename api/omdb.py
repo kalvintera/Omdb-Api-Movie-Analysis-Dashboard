@@ -4,16 +4,25 @@ from config import Config
 
 
 class OmdbApiHandler:
+    """
+    Diese Klasse dient als API-Wrapper und beinhaltet die gesamte Logik,
+    um mit der API interagieren zu können. Die App muss nur die
+    Funktionen dieser Klasse aufrufen, ohne wissen zu müssen, wie
+    die Authentifizierung funktioniert oder Endpoints aufgebaut sind.
+    """
+
     def __init__(self):
         self.config = Config()
 
     def get_movie_data(self, movie_title: str) -> Dict:
         """
-        this function calls an api and gets information based on given movie title
-        :param movie_title: a string / represents the title of the movie
-        :return: a dictionary with meta information of the given movie title
+        Diese Funktion ruft die API auf und holt die Filmdaten basierend auf
+        dem angegebenen Filmtitel.
+        :param movie_title: der Filmtitel.
+        :return: Ein Dictionary mit den Informationen des angegebenen Films
         """
         parameters = {"t": movie_title, "apikey": self.config.api_key}
+
         try:
             request = requests.get(self.config.api_url, params=parameters)
             response = request.json()
@@ -23,30 +32,33 @@ class OmdbApiHandler:
                     return response
                 else:
                     return {}
+
         except (
             requests.exceptions.RequestException,
             requests.exceptions.HTTPError,
             requests.exceptions.ConnectionError,
         ) as error:
             print(f"Something went wrong while calling the api {error}")
+            return {}
 
-    def get_movie_info_from_list(self, movie_title_list) -> List:
+    def get_movie_info_from_list(self, movie_title_list: List[str]) -> List[dict]:
         """
-        this function iterates through a string list, extracts movie information from
-        each movie title
-        :param movie_title_list: a string list contains movie titles
-        :return: a list of dictionaries with movie information
+        Diese Funktion iteriert durch die gegebene Filmliste und holt für jeden Film
+        einzeln die Filmdaten über die API.
+        :param movie_title_list: Liste an Filmtiteln.
+        :return: Eine Liste mit einem Dictionary an Filmdaten je Film
         """
         movie_info_list = []
+
         if movie_title_list:
             for movie in movie_title_list:
+                print(f"Fetching data from OmdbAPI for movie {movie}")
+
                 movie_dict = self.get_movie_data(movie_title=movie)
+
                 if len(movie_dict) > 0:
                     movie_info_list.append(movie_dict)
         else:
-            print("movie title is empty")
+            print("No movie titles provided")
 
-        if movie_info_list:
-            return movie_info_list
-        else:
-            print("movie info for given movie titles")
+        return movie_info_list
