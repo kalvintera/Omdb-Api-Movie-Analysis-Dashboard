@@ -1,4 +1,6 @@
 import requests
+import json
+from pathlib import Path
 from typing import Dict, List
 from config import Config
 
@@ -14,6 +16,27 @@ class OmdbApiHandler:
     def __init__(self):
         self.config = Config()
 
+        self.cache_file_location = Config.project_path.joinpath("api").joinpath("MovieData.cache.json")
+        self._load_movie_data_cache()
+
+    def _load_movie_data_cache(self):
+        self.movie_data_cache = {}
+
+        if self.cache_file_location.exists():
+            with open(self.cache_file_location, "r") as file:
+
+                try:
+                    self.movie_data_cache = json.loads(file.read())
+                except json.JSONDecodeError:
+                    print(f"Could not read cached movie data.")
+
+    def _update_movie_data_cache_file(self):
+        with open(self.cache_file_location, "w") as file:
+            file.write(json.dumps(self.movie_data_cache))
+
+    def _invalidate_cached_movie_data(self):
+        self.cache_file_location.unlink()
+
     def get_movie_data(self, movie_title: str) -> Dict:
         """
         Diese Funktion ruft die API auf und holt die Filmdaten basierend auf
@@ -21,6 +44,11 @@ class OmdbApiHandler:
         :param movie_title: der Filmtitel.
         :return: Ein Dictionary mit den Informationen des angegebenen Films
         """
+        movie_data = self.movie_data_cache.get(movie_title, None)
+
+        if movie_data:
+            return movie_data
+
         parameters = {"t": movie_title, "apikey": self.config.api_key}
 
         try:
@@ -29,6 +57,8 @@ class OmdbApiHandler:
 
             if "Response" in response.keys():
                 if response["Response"] == "True":
+                    self.movie_data_cache[movie_title] = response
+                    self._update_movie_data_cache_file()
                     return response
                 else:
                     return {}

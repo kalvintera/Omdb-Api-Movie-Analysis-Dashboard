@@ -1,7 +1,12 @@
+import json
+import time
 from typing import List, Tuple
 import pandas as pd
-from geopy.geocoders import Nominatim
-from geopy.extra.rate_limiter import RateLimiter
+
+from pyphoton import Photon
+
+from config import Config
+from pathlib import Path
 
 
 class DataProcessor:
@@ -10,15 +15,32 @@ class DataProcessor:
         Konstruktor für DataProcessor-Klasse.
         :param features_list: Liste der Features, die aus den Filmdaten extrahiert werden sollen.
         """
+        self.config = Config
+        self.cache_file_path = Config.project_path.joinpath("processor").joinpath("location.cache.json")
+
+        self.geo_locator = Photon()
+
         self.features_list = features_list
 
-        self.geo_locator = Nominatim(user_agent="myGeocoder", timeout=10)
+        self._load_cached_locations()
 
-        # Der RateLimiter verhindert, dass die API zu oft aufgerufen und die eigene
-        # IP-Adresse blockiert wird.
-        self.geo_locator = RateLimiter(self.geo_locator.geocode, min_delay_seconds=1)
-
+    def _load_cached_locations(self):
         self.geocache = {}
+
+        if self.cache_file_path.exists():
+            with open(self.cache_file_path, "r") as file:
+                try:
+                    self.geocache = json.loads(file.read())
+
+                except json.JSONDecodeError:
+                    print("Could not read cache file")
+
+    def _update_cached_locations(self):
+        with open(self.cache_file_path, "w") as file:
+            file.write(json.dumps(self.geocache))
+
+    def invalidate_cached_locations(self):
+        self.cache_file_path.unlink()
 
     def list_from_selected_features(
         self,
@@ -112,10 +134,12 @@ class DataProcessor:
         # Nur wenn das Land nicht bereits im Cache ist, wird eine API Anfrage ausgesendet.
         if country not in self.geocache:
             try:
-                location = self.geo_locator(country)
+                location = self.geo_locator.query(country, limit=1, osm_tags=["place:country"])
+                time.sleep(0.1)
 
                 if location:
                     self.geocache[country] = (location.latitude, location.longitude)
+                    self._update_cached_locations()
 
             except Exception as e:
                 print(f"Fehler beim Abrufen der Koordinaten für {country}: {e}")

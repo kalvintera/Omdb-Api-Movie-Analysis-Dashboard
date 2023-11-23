@@ -18,6 +18,7 @@ geopy = "*"
 folium = "*"
 streamlit-folium = "*"
 extra-streamlit-components = "*"
+pyphoton = "*"
 
 [dev-packages]
 black = "*"

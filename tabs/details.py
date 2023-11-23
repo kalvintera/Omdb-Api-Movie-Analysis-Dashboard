@@ -107,9 +107,9 @@ def create_details() -> None:
                 max_text_len = len(str(movie_details["Plot"]).split(" "))
                 max_word = st.slider(
                     "maximale WörterKlicken, um Alternative zu verwenden",
-                    10,
+                    5,
                     max_text_len,
-                    10,
+                    5,
                 )
 
                 _create_cloud(text=movie_details["Plot"], max_word=max_word)

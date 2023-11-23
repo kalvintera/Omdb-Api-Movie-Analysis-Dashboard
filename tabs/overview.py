@@ -86,14 +86,13 @@ def initial_setup(movie_titles: str, api: OmdbApiHandler, movie_file_upload) -> 
             movie_titles_input=movie_titles, uploaded_file=movie_file_upload
         )
 
-        if len(movie_list) > 15:
+        # Hier wird die Liste manuell reduziert, um das Testen der Applikation
+        # zu erleichtern und das Überschreiten der API-Limits zu verhindern
+        if len(movie_list) > 40:
             movie_list = movie_list[0:40]
 
-        print(movie_list)
         if movie_list and movie_list[0] != "":
-            print("get_movie_info_from_list")
             movie_data_raw = api.get_movie_info_from_list(movie_title_list=movie_list)
-            print(movie_data_raw)
 
             if movie_data_raw:
                 st.session_state.movie_data_raw_df = pd.DataFrame(movie_data_raw)
@@ -267,7 +266,9 @@ def create_overview_graphs() -> None:
                 hover_data=["Title"],
                 title="Box-Office-Einnahmen vs. IMDb Bewertungen",
                 trendline="ols",
+                width=400
             )
+
             graph_column_3.plotly_chart(fig)
 
             # Ergebnisse der Trendlinienanalyse
