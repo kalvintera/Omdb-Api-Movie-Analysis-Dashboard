@@ -138,7 +138,7 @@ def create_overview_graphs() -> None:
         # Df Filter-Elemente:
         filter_col1, filter_col2 = st.columns([1, 1])
         selected_columns = filter_col1.multiselect(
-            "**Filter Data**:",
+            "**Angezeigte Spalten**:",
             [
                 column
                 for column in st.session_state.movie_data_raw_df.columns
@@ -147,7 +147,7 @@ def create_overview_graphs() -> None:
         )
 
         text_search = filter_col2.text_input(
-            "Suchen Sie Videos nach Titel, Genre oder Schauspieler", value=""
+            "Suchen Sie Filme nach Titel, Genre oder Schauspieler", value=""
         )
 
         movie_data_raw_df = st.session_state.movie_data_raw_df.copy()
@@ -174,8 +174,14 @@ def create_overview_graphs() -> None:
             ]
             movie_data_raw_df = movie_data_raw_df_filtered[movie_data_raw_df.columns]
 
+        column_order = list(movie_data_raw_df.columns)
+
+        column_order.remove("Poster")
+        column_order.insert(0, "Poster")
+
         st.data_editor(
             movie_data_raw_df,
+            column_order=column_order,
             column_config={
                 "Poster": st.column_config.ImageColumn(
                     "Preview Poster", help="Streamlit app preview screenshots"
@@ -266,7 +272,8 @@ def create_overview_graphs() -> None:
                 hover_data=["Title"],
                 title="Box-Office-Einnahmen vs. IMDb Bewertungen",
                 trendline="ols",
-                width=400
+                width=500,
+                height=500,
             )
 
             graph_column_3.plotly_chart(fig)
