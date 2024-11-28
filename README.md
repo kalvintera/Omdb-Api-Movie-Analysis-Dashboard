@@ -57,6 +57,7 @@ Visualisierung von Filmgenres, IMDb-Bewertungen, Box-Office-Einnahmen und mehr d
 <li><strong>design/styler.py:</strong> Hilfsklasse für benutzerdefinierte CSS-Stile und Designelemente.</li>
 <li><strong>input/:</strong> Verzeichnis mit CSV-Dateien von IMDb für die Jahre 2021 und 2023.</li>
 <li><strong>process/processor.py:</strong> Enthält die `DataProcessor`-Klasse zur Verarbeitung und Analyse der Filmdaten. Funktionen umfassen das Explodieren von Spalten, Verarbeiten von Bewertungen und Erstellen von geografischen Daten für Kartenvisualisierungen.</li>
+<strong>WICHTIG:</strong> Die Prozessreihenfolge enthält eine Datei namens `locator.cache.json`, die automatisch erstellt wird, wenn sie nicht existiert. Sie speichert die Koordinaten aus dem Photon-Paket und beschleunigt den Prozess, indem nur die Länderkoordinaten extrahiert werden, die noch nicht extrahiert wurden.
 <li><strong>static/img/logo.jpg: </strong> Logo der App.</li>
 <li><strong>tab/overview.py:</strong> Erstellung der Überblicksgrafiken und -funktionen für das Dashboard.</li>
 <li><strong>tab/details.py:</strong> Verantwortlich für die Erstellung der Detailansicht in der App. Beinhaltet Funktionen zur Erzeugung von Wortwolken und zur Anzeige detaillierter Filminformationen.</li>
@@ -87,6 +88,8 @@ API_KEY=XXXX
 
 Die App verwendet IMDb-Daten, die in CSV-Dateien im input-Ordner enthalten sind. Beispielhafte Datenzeilen:
 
+**WICHTIG**
+Das hochgeladene File muss die Spalte "Title" enthalten.
 
 ````matematica
 Position,Const,Created,Modified,Description,Title,URL,Title Type,IMDb Rating,Runtime (mins),Year,Genres,Num Votes,Release Date,Directors
