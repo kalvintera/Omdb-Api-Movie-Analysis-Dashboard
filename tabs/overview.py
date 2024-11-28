@@ -177,6 +177,7 @@ def create_overview_graphs() -> None:
         column_order = list(movie_data_raw_df.columns)
 
         column_order.remove("Poster")
+        column_order.remove("Ratings")
         column_order.insert(0, "Poster")
 
         st.data_editor(
@@ -231,12 +232,8 @@ def create_overview_graphs() -> None:
             st.plotly_chart(fig, use_container_width=True)
 
             # Median IMDb-Bewertung pro Genre
-            genre_exploded["imdbRating"] = pd.to_numeric(
-                genre_exploded["imdbRating"], errors="coerce"
-            )
-
-            # Zeilen mit NaN-Werten in der 'imdbRating' Spalte werden entfernt
-            genre_exploded = genre_exploded.dropna(subset=["imdbRating"])
+            # Data-Bereinigen mit clean_int_values:
+            genre_exploded = processor.clean_int_values(movie_df=genre_exploded)
 
             genre_ratings = (
                 genre_exploded.groupby("Genre")["imdbRating"].median().reset_index()
@@ -257,13 +254,6 @@ def create_overview_graphs() -> None:
             graph_column_2.plotly_chart(fig, use_container_width=True)
 
             # Korrelation zwischen Box-Office und Imdb Rating
-            genre_exploded["BoxOffice"] = (
-                genre_exploded["BoxOffice"]
-                .str.replace("$", "")
-                .str.replace(",", "")
-                .replace("N/A", np.nan)
-                .astype(float)
-            )
 
             fig = px.scatter(
                 genre_exploded,
@@ -273,63 +263,81 @@ def create_overview_graphs() -> None:
                 title="Box-Office-Einnahmen vs. IMDb Bewertungen",
                 trendline="ols",
                 width=500,
-                height=500,
+                height=400,
             )
-
             graph_column_3.plotly_chart(fig)
 
+            # Example Histogramm
+            # Anzahl der Datenpunkte bestimmen
+            movie_data_raw_df = processor.clean_int_values(movie_data_raw_df)
+            bin_width = 10000000  # bin Breite - 10M
+            bins = int((movie_data_raw_df["BoxOffice"].max() - float(movie_data_raw_df["BoxOffice"].min())) / bin_width)
+
+            print(f"n_bins {bins}")
+            graph_column_4.write("Verteilung der BoxOffice Einnahmen:")
+            fig_hist = px.histogram(
+                movie_data_raw_df,
+                x="BoxOffice",
+                nbins=bins,
+                width=500,
+                height=400
+            )
+            graph_column_4.plotly_chart(fig_hist)
+
+            """
+            # ADVANCE RESULTS 
             # Ergebnisse der Trendlinienanalyse
             results = px.get_trendline_results(fig)
-
+            
             # Konvertiere die Ergebnisse in einen DataFrame
             results_df = results.px_fit_results.iloc[0].summary()
-
+            
             # die Ergebnisse in Streamlit werden angezeigt
             graph_column_3.write("Trendlinienanalyse Ergebnisse:")
             graph_column_3.write(results_df)
+            """
 
-            # ----------  COUNTRIES MAP --------------
+        # ----------  COUNTRIES MAP --------------
 
-            # a dedicated single loader
-            with graph_column_4:
-                with st.spinner("Bitte warten ..."):
-                    countries = st.session_state.movie_data_raw_df["Country"].apply(
-                        lambda x: x.split(",") if isinstance(x, str) else x
-                    )
-                    processed_countries = list(
-                        set(country.strip() for country in set(countries.explode()))
-                    )
+        # a dedicated single loader
+        with st.spinner("Bitte warten ..."):
+            countries = st.session_state.movie_data_raw_df["Country"].apply(
+                lambda x: x.split(",") if isinstance(x, str) else x
+            )
+            processed_countries = list(
+                set(country.strip() for country in set(countries.explode()))
+            )
 
-                    geo_map_df = create_geo_map_data(country_list=processed_countries)
+            geo_map_df = create_geo_map_data(country_list=processed_countries)
 
-                    # Erstellung der Mapbox-Karte
-                    fig = px.scatter_mapbox(
-                        geo_map_df,
-                        lat="latitude",
-                        lon="longitude",
-                        hover_data={"latitude": False, "longitude": False},
-                        zoom=2,
-                        height=800,
-                        title="Länderverteilung der Filme",
-                        color_discrete_sequence=["fuchsia"],
-                    )
+            # Erstellung der Mapbox-Karte
+            fig = px.scatter_mapbox(
+                geo_map_df,
+                lat="latitude",
+                lon="longitude",
+                hover_data={"latitude": False, "longitude": False},
+                zoom=1,
+                height=500,
+                title="Länderverteilung der Filme",
+                color_discrete_sequence=["fuchsia"],
+            )
 
-                    fig.add_trace(
-                        go.Scattermapbox(
-                            mode="markers",
-                            marker=go.scattermapbox.Marker(
-                                size=15, color="rgb(242, 177, 172)", opacity=0.7
-                            ),
-                            hoverinfo="none",
-                        )
-                    )
+            fig.add_trace(
+                go.Scattermapbox(
+                    mode="markers",
+                    marker=go.scattermapbox.Marker(
+                        size=15, color="rgb(242, 177, 172)", opacity=0.7
+                    ),
+                    hoverinfo="none",
+                )
+            )
 
-                    fig.update_layout(mapbox_style="open-street-map")
-                    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    st.markdown(
-                        "<strong>Länderverteilung der Filme</strong>",
-                        unsafe_allow_html=True,
-                    )
+            fig.update_layout(mapbox_style="open-street-map")
+            fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(
+                "<strong>Länderverteilung der Filme</strong>",
+                unsafe_allow_html=True,
+            )
 
-                    st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, use_container_width=True)
