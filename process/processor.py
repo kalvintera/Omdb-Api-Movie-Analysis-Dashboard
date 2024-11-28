@@ -2,6 +2,7 @@ import json
 import time
 from typing import List, Tuple
 import pandas as pd
+import numpy as np
 
 from pyphoton import Photon
 
@@ -122,6 +123,31 @@ class DataProcessor:
                 )
                 del movie["Ratings"]
         return movie_list
+
+    @staticmethod
+    def clean_int_values(movie_df: pd.DataFrame) -> pd.DataFrame:
+
+        if not movie_df.empty:
+            # 1. Fehlende Werte (N/A) durch 0 ersetzen
+            if "BoxOffice" in movie_df.columns:
+                movie_df["BoxOffice"] = (
+                    movie_df["BoxOffice"]
+                    .str.replace("$", "")
+                    .str.replace(",", "")
+                    .replace("N/A", np.nan)
+                    .astype(float)
+                )
+            if "imdbRating" in movie_df.columns:
+                # Median IMDb-Bewertung pro Genre
+                movie_df["imdbRating"] = pd.to_numeric(
+                    movie_df["imdbRating"], errors="coerce"
+                )
+
+                # Zeilen mit NaN-Werten in der 'imdbRating' Spalte werden entfernt
+                movie_df = movie_df.dropna(subset=["imdbRating"])
+
+        return movie_df
+
 
     def get_coordinates(self, country: str) -> Tuple[None | int, None | int]:
         """
