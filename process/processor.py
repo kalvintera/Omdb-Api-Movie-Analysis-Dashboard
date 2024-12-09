@@ -17,7 +17,9 @@ class DataProcessor:
         :param features_list: Liste der Features, die aus den Filmdaten extrahiert werden sollen.
         """
         self.config = Config
-        self.cache_file_path = Config.project_path.joinpath("processor").joinpath("location.cache.json")
+        self.cache_file_path = Config.project_path.joinpath("processor").joinpath(
+            "location.cache.json"
+        )
 
         self.geo_locator = Photon()
 
@@ -126,17 +128,26 @@ class DataProcessor:
 
     @staticmethod
     def clean_int_values(movie_df: pd.DataFrame) -> pd.DataFrame:
+        """
+        diese Funktion bereinigt int/float Spalten für die weiteren Analysen
+        :param movie_df: movie dataframe beinhaltet Movie-Daten
+        :return movie_df:
+        """
 
         if not movie_df.empty:
             # 1. Fehlende Werte (N/A) durch 0 ersetzen
             if "BoxOffice" in movie_df.columns:
+                movie_df["BoxOffice"] = movie_df["BoxOffice"].fillna("0")
+                movie_df["BoxOffice"] = movie_df["BoxOffice"].astype(str)
                 movie_df["BoxOffice"] = (
                     movie_df["BoxOffice"]
-                    .str.replace("$", "")
-                    .str.replace(",", "")
+                    .str.replace(r"[$,]", "", regex=True)
                     .replace("N/A", np.nan)
+                    .replace("", np.nan)
                     .astype(float)
                 )
+                # Werte in Millionen umwandeln
+                movie_df["BoxOffice"] = (movie_df["BoxOffice"] / 1_000_000).round(2)
             if "imdbRating" in movie_df.columns:
                 # Median IMDb-Bewertung pro Genre
                 movie_df["imdbRating"] = pd.to_numeric(
@@ -147,7 +158,6 @@ class DataProcessor:
                 movie_df = movie_df.dropna(subset=["imdbRating"])
 
         return movie_df
-
 
     def get_coordinates(self, country: str) -> Tuple[None | int, None | int]:
         """
@@ -160,7 +170,9 @@ class DataProcessor:
         # Nur wenn das Land nicht bereits im Cache ist, wird eine API Anfrage ausgesendet.
         if country not in self.geocache:
             try:
-                location = self.geo_locator.query(country, limit=1, osm_tags=["place:country"])
+                location = self.geo_locator.query(
+                    country, limit=1, osm_tags=["place:country"]
+                )
                 time.sleep(0.1)
 
                 if location:
