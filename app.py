@@ -55,7 +55,6 @@ chosen_id = stx.tab_bar(
 
 print(f"chosen_id : {chosen_id}")
 
-# Überprüfen Sie, welcher Tab aktiv ist und rufen Sie die entsprechende Funktion auf
 
 # Wenn der 'Analyse Starten'-Button gedrückt wird
 if start_analysis:
