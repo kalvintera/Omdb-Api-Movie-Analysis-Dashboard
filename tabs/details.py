@@ -78,10 +78,8 @@ def create_details() -> None:
                 "Wählen Sie einen Film aus, um Details zu sehen:",
                 st.session_state.movie_data_raw_df["Title"].unique(),
             )
-
-            movie_details = st.session_state.movie_data_raw_df[
-                st.session_state.movie_data_raw_df["Title"] == selected_title
-            ].iloc[0]
+            movie_data = st.session_state["movie_data_raw_df"].copy()
+            movie_details = movie_data[movie_data["Title"] == selected_title].iloc[0]
 
             st.image(movie_details["Poster"])
             st.subheader(movie_details["Title"])
