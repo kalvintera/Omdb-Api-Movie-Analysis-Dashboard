@@ -95,7 +95,7 @@ def initial_setup(movie_titles: str, api: OmdbApiHandler, movie_file_upload) -> 
             movie_data_raw = api.get_movie_info_from_list(movie_title_list=movie_list)
 
             if movie_data_raw:
-                st.session_state.movie_data_raw_df = pd.DataFrame(movie_data_raw)
+                st.session_state["movie_data_raw_df"] = pd.DataFrame(movie_data_raw)
                 print(
                     f"st.session_state.movie_data_raw_df {st.session_state.movie_data_raw_df}"
                 )
@@ -106,7 +106,7 @@ def initial_setup(movie_titles: str, api: OmdbApiHandler, movie_file_upload) -> 
                 )
 
         else:
-            st.session_state.movie_data_raw_df = pd.DataFrame()
+            st.session_state["movie_data_raw_df"] = pd.DataFrame()
             st.session_state.input_movie_titles = ""
             st.markdown(
                 '<p class="font">Your movie list is empty</p>', unsafe_allow_html=True
@@ -131,7 +131,11 @@ def create_overview_graphs() -> None:
             df=st.session_state.movie_data_raw_df,
             column_name_list=["Genre", "Country", "Actors", "Country"],
         )
-
+        if not st.session_state["cleaned"]:
+            st.session_state["movie_data_raw_df"] = processor.clean_int_values(
+                movie_df=st.session_state["movie_data_raw_df"]
+            )
+            st.session_state["cleaned"] = True
         # Geschützte Spalten:
         protected_columns = ["Poster", "Title", "Genre", "imdbRating", "BoxOffice"]
 
@@ -145,13 +149,14 @@ def create_overview_graphs() -> None:
                 if column not in protected_columns
             ],
         )
+        print(f"selected columns {selected_columns}")
 
         text_search = filter_col2.text_input(
             "Suchen Sie Filme nach Titel, Genre oder Schauspieler", value=""
         )
 
-        movie_data_raw_df = st.session_state.movie_data_raw_df.copy()
-
+        movie_data_raw_df = st.session_state["movie_data_raw_df"].copy()
+        print(f"movie data columns {movie_data_raw_df.columns}")
         if selected_columns:
             movie_data_raw_df = movie_data_raw_df[protected_columns + selected_columns]
         else:
@@ -177,7 +182,7 @@ def create_overview_graphs() -> None:
         column_order = list(movie_data_raw_df.columns)
 
         column_order.remove("Poster")
-        column_order.remove("Ratings")
+        # column_order.remove("Ratings")
         column_order.insert(0, "Poster")
 
         st.data_editor(
@@ -190,6 +195,9 @@ def create_overview_graphs() -> None:
                 "imdbRating": st.column_config.NumberColumn(
                     "imdbRating", help="IMDB Rating of the movie", format="%f ⭐"
                 ),
+                "BoxOffice": st.column_config.NumberColumn(
+                    "BoxOffice", help="BoxOffice of the movie", format="%fM"
+                ),
             },
             hide_index=True,
         )
@@ -200,7 +208,7 @@ def create_overview_graphs() -> None:
 
         with graph_column_1:
             # Die Spalte "Genre" in eine lange Reihe auflösen
-            genre_exploded = st.session_state.movie_data_raw_df.explode("Genre")
+            genre_exploded = st.session_state["movie_data_raw_df"].explode("Genre")
             genre_counts = genre_exploded["Genre"].value_counts().reset_index()
             genre_counts.columns = ["Genre", "Count"]
 
@@ -233,7 +241,7 @@ def create_overview_graphs() -> None:
 
             # Median IMDb-Bewertung pro Genre
             # Data-Bereinigen mit clean_int_values:
-            genre_exploded = processor.clean_int_values(movie_df=genre_exploded)
+            # genre_exploded = processor.clean_int_values(movie_df=genre_exploded)
 
             genre_ratings = (
                 genre_exploded.groupby("Genre")["imdbRating"].median().reset_index()
@@ -265,22 +273,32 @@ def create_overview_graphs() -> None:
                 width=500,
                 height=400,
             )
+            fig.update_layout(
+                xaxis_title="Box Office (in Millionen)",
+                yaxis_title="IMDb Bewertung",
+            )
             graph_column_3.plotly_chart(fig)
 
             # Example Histogramm
             # Anzahl der Datenpunkte bestimmen
-            movie_data_raw_df = processor.clean_int_values(movie_data_raw_df)
-            bin_width = 10000000  # bin Breite - 10M
-            bins = int((movie_data_raw_df["BoxOffice"].max() - float(movie_data_raw_df["BoxOffice"].min())) / bin_width)
+            # movie_data_raw_df = processor.clean_int_values(movie_data_raw_df)
+            bin_width = 20  # bin Breite - 10M
+            bins = int(
+                (
+                    movie_data_raw_df["BoxOffice"].max()
+                    - float(movie_data_raw_df["BoxOffice"].min())
+                )
+                / bin_width
+            )
 
             print(f"n_bins {bins}")
             graph_column_4.write("Verteilung der BoxOffice Einnahmen:")
             fig_hist = px.histogram(
-                movie_data_raw_df,
-                x="BoxOffice",
-                nbins=bins,
-                width=500,
-                height=400
+                movie_data_raw_df, x="BoxOffice", nbins=bins, width=500, height=400
+            )
+            fig_hist.update_layout(
+                xaxis_title="Box Office (in Millionen)",
+                yaxis_title="Anzahl der Filme",
             )
             graph_column_4.plotly_chart(fig_hist)
 
@@ -301,7 +319,7 @@ def create_overview_graphs() -> None:
 
         # a dedicated single loader
         with st.spinner("Bitte warten ..."):
-            countries = st.session_state.movie_data_raw_df["Country"].apply(
+            countries = st.session_state["movie_data_raw_df"]["Country"].apply(
                 lambda x: x.split(",") if isinstance(x, str) else x
             )
             processed_countries = list(
