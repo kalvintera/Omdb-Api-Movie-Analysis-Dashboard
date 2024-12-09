@@ -20,10 +20,12 @@ st.set_page_config(
 # Hinzufügen der eigenen CSS-Regeln
 designer.add_custom_css()
 
+
 # Initialisierung von Session State Variablen
 if "movie_data_raw_df" not in st.session_state:
     st.session_state["movie_data_raw_df"] = pd.DataFrame()
     st.session_state["input_movie_titles"] = ""
+    st.session_state["cleaned"] = False
     st.session_state["active_tab"] = "Overview"
 
 # Seitenlayout und Inhalte
