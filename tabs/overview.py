@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
+
 from typing import List
 import plotly.express as px
 import plotly.graph_objects as go
@@ -136,6 +136,7 @@ def create_overview_graphs() -> None:
                 movie_df=st.session_state["movie_data_raw_df"]
             )
             st.session_state["cleaned"] = True
+
         # Geschützte Spalten:
         protected_columns = ["Poster", "Title", "Genre", "imdbRating", "BoxOffice"]
 
@@ -279,7 +280,7 @@ def create_overview_graphs() -> None:
             )
             graph_column_3.plotly_chart(fig)
 
-            # Example Histogramm
+            # Histogramm
             # Anzahl der Datenpunkte bestimmen
             # movie_data_raw_df = processor.clean_int_values(movie_data_raw_df)
             bin_width = 20  # bin Breite - 10M

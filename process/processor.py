@@ -7,10 +7,10 @@ import numpy as np
 from pyphoton import Photon
 
 from config import Config
-from pathlib import Path
 
 
 class DataProcessor:
+
     def __init__(self, features_list: List[str]):
         """
         Konstruktor für DataProcessor-Klasse.
@@ -50,7 +50,7 @@ class DataProcessor:
         movie_data_list: List[dict],
     ) -> List[dict]:
         """
-        Filtert Filme basierend auf ausgewählten Features.
+        Filtert Filme basierend auf den ausgewählten Features.
 
         :param movie_data_list: Liste von Filmdaten als Dictionaries.
         :return: Liste von gefilterten Filmdaten.
@@ -61,11 +61,12 @@ class DataProcessor:
 
         # Überprüfen, ob die Feature-Liste vorhanden ist
         if self.features_list:
+
             # Durchgehen jedes Films in der Liste
             for movie_dict in movie_data_list:
                 # Ein Beispiel für eine komplexere List/Dictionary comprehension.
                 # Das key-value-Paar wird nur hinzugefügt,
-                # wenn der key auch in der self.features_lit vorkommt
+                # wenn der key auch in der self.features_list vorkommt
                 filtered_movie_dict = {
                     key: value
                     for key, value in movie_dict.items()
@@ -129,7 +130,7 @@ class DataProcessor:
     @staticmethod
     def clean_int_values(movie_df: pd.DataFrame) -> pd.DataFrame:
         """
-        diese Funktion bereinigt int/float Spalten für die weiteren Analysen
+        Diese Funktion bereinigt int/float Spalten für die weiteren Analysen
         :param movie_df: movie dataframe beinhaltet Movie-Daten
         :return movie_df:
         """
@@ -148,6 +149,7 @@ class DataProcessor:
                 )
                 # Werte in Millionen umwandeln
                 movie_df["BoxOffice"] = (movie_df["BoxOffice"] / 1_000_000).round(2)
+
             if "imdbRating" in movie_df.columns:
                 # Median IMDb-Bewertung pro Genre
                 movie_df["imdbRating"] = pd.to_numeric(

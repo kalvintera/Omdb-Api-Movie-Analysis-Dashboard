@@ -53,7 +53,7 @@ def _create_cloud(text: str, max_word: int) -> None:
     # word cloud erstellen
     w_cloud.generate(text)
 
-    # show the figure
+    # diagram in streamlit anzeigen
     plt.figure(figsize=(100, 100))
 
     fig, ax = plt.subplots()
