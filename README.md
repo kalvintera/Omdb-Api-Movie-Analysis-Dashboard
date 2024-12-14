@@ -76,20 +76,29 @@ streamlit run app.py
 ````
 Führen Sie die App mit dem Befehl streamlit run app.py aus.
 Die App ist nun im Browser unter der angegebenen URL zugänglich.
-Hinweis
-Die .env-Datei mit API-Zugangsdaten ist aus Sicherheitsgründen nicht im Repository enthalten.
+
+📌 **Hinweis**
+
+Die **.env-Datei mit API-Zugangsdaten** ist aus Sicherheitsgründen nicht im Repository enthalten.
 Sie müssen Ihren eigenen API-Schlüssel von der OMDB API-Website anfordern (hier: <a href="https://www.omdbapi.com/apikey.aspx">OMDB-API KEY REQUEST</a>)
 und diesen in Ihrer lokalen .env-Datei speichern.
+
+- .env-Datei muss sich auf der gleichen Ebene wie app.py befinden
+
 Bsp: 
 
 API_KEY=XXXX
+
+
 
 **Datenquellen**
 
 Die App verwendet IMDb-Daten, die in CSV-Dateien im input-Ordner enthalten sind. Beispielhafte Datenzeilen:
 
-**WICHTIG**
+⚠️ **WICHTIG**
+
 Das hochgeladene File muss die Spalte "Title" enthalten.
+CSV-Beispieldateien befinden sich im Input-Ordner. (./input)
 
 ````matematica
 Position,Const,Created,Modified,Description,Title,URL,Title Type,IMDb Rating,Runtime (mins),Year,Genres,Num Votes,Release Date,Directors
